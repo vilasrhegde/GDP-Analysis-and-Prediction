@@ -143,7 +143,7 @@ if selected == 'Home':
 
 
         st.balloons()
-        # st.snow()
+        st.snow()
         st.success(f'R2 Score of the _Random Forest Regressor_ is: __{0.84}__')
         st.info('Generally R2 score __>0.7__ is considered as good', icon="ℹ️")
         st.header(f'The estimated GDP per capita is: `{float(prediction)}` ')
