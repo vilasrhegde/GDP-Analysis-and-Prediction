@@ -271,28 +271,13 @@ elif selected=='Analytics':
 
         with col2:
             st.write('''
-        2. _`Gradient Boosting` with selected features and scaling_
-        - Mean Absolute Error __(MAE)__: 2467.21
-        - Root Mean Squared Error __(RMSE)__: 3789.30
-        - R-Squared Score __(R2_Score)__: 0.83''')
-        
-        with col3:
-            st.write('''
 
         3. _`Linear Regression` with selected features and scaling_
         - Mean Absolute Error __(MAE)__: 2879.521
         - Root Mean Squared Error __(RMSE)__:3756.43
         - R-Squared Score __(R2_Score)__: 0.83''')
-            
-        with col1:
-            st.write('''
-
-        4. _`Optimised Random Forest`_
-        - Mean Absolute Error __(MAE)__: 3564.04
-        - Root Mean Squared Error __(RMSE)__: 5915.82
-        - R-Squared Score __(R2_Score)__: 0.73''')
-            
-        with col2:
+        
+        with col3:
             st.write('''
 
         5. _`SVM` with feature scaling and selection_
@@ -300,6 +285,23 @@ elif selected=='Analytics':
         - Root Mean Squared Error __(RMSE)__: 9794.59
         - R-Squared Score __(R2_Score)__: -0.16
         ''')
+            
+        with col1:
+            st.write('''
+        2. _`Gradient Boosting` with selected features and scaling_
+        - Mean Absolute Error __(MAE)__: 2467.21
+        - Root Mean Squared Error __(RMSE)__: 3789.30
+        - R-Squared Score __(R2_Score)__: 0.83''')
+            
+        with col2:
+
+            
+            st.write('''
+
+        4. _`Optimised Random Forest`_
+        - Mean Absolute Error __(MAE)__: 3564.04
+        - Root Mean Squared Error __(RMSE)__: 5915.82
+        - R-Squared Score __(R2_Score)__: 0.73''')
 
 
 
