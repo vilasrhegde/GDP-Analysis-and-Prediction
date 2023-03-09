@@ -9,9 +9,7 @@ from datetime import date
 
 
 
-# Loading the saved Random Forest model
-RFmodel = pickle.load(open('RFmodel.pkl','rb'))
-data=pd.read_csv('filtered_data.csv')
+
 
 # Implementing the design
 
@@ -26,7 +24,19 @@ st.set_page_config(
         'About': "# Made by Vilas Hegde!"
     }
 )
+# Loading the saved Random Forest model
 
+@st.cache_resource(show_spinner=True)
+def get_model(model_name):
+    model = pickle.load(open(model_name,'rb'))
+    return model
+@st.cache_resource(show_spinner=True)
+def get_data(name):
+    data=pd.read_csv(name)
+    return data
+
+RFmodel=get_model('RFmodel.pkl')
+data=get_data('filtered_data.csv')
 
 # ------------------LOGIN---------------------------
 st.title("GDP per capita prediction using Machine Learning")
@@ -207,7 +217,7 @@ if selected == 'Prediction':
     if (st.button('__**Estimate GDP**__',use_container_width=True,type='primary')):
         prediction=RFmodel.predict(user_input)
 
-        with st.spinner('Prediction in on the way...'):
+        with st.spinner('Prediction is on the way...'):
             time.sleep(2)
 
 
@@ -220,6 +230,8 @@ if selected == 'Prediction':
 
 
 elif selected=='Analytics':
+
+
     
     tab1, tab2, tab3 = st.tabs(["Regional", "EDA", "Performance"])
 
@@ -229,21 +241,21 @@ elif selected=='Analytics':
 
     with tab1:
             
-        st.plotly_chart(px.bar(d, x='gdp_per_capita',title="Rankings of Regions based on GDP per capita",orientation='h',width=800,height=500),theme='streamlit')
+        st.plotly_chart(px.bar(d, x='gdp_per_capita',title="Rankings of Regions based on GDP per capita",orientation='h'),theme='streamlit',use_container_width=True)
 
         st.plotly_chart(px.scatter(data, x="literacy", y="gdp_per_capita",title='GDP per capita v/s Literacy', size='literacy', color="region",
-            hover_name="country", log_x=True, size_max=60))
+            hover_name="country", log_x=True),use_container_width=False)
         st.info('__GDP__ of a country is highly dependant upon the __literacy__ and vice versa.')
 
         st.plotly_chart(px.scatter(data, x="agriculture", y="gdp_per_capita", color="region",
-                    title='GDP v/s Agriculture (Crops)'))
+                    title='GDP v/s Agriculture (Crops)'),use_container_width=True)
         st.info('Poor countries are more dependant upon harvesting crops than developed countris.')
 
-        st.plotly_chart(px.box(data,x="area",y="gdp_per_capita",points="all"),theme=None)
+        st.plotly_chart(px.box(data,x="area",y="gdp_per_capita",points="all"),theme=None,use_container_width=True)
         st.info('As the area increased, the GDP did not kept up.')
 
-        st.plotly_chart(px.bar(data, x='region', y='country'),theme=None)
-        st.plotly_chart(px.bar(data, x='region', y='gdp_per_capita',color='country',title="GDP of multiple Regions",width=700,height=500))
+        st.plotly_chart(px.bar(data, x='region', y='country'),theme=None,use_container_width=True)
+        st.plotly_chart(px.bar(data, x='region', y='gdp_per_capita',color='country',title="GDP of multiple Regions",width=500),use_container_width=True)
 
     with tab2:
         st.sidebar.markdown('### For Exploratory Data Analysis (EDA)')
@@ -258,12 +270,12 @@ elif selected=='Analytics':
             st.markdown(f'# The 3D Graph')
             st.write('You selected:', options)
 
-        st.plotly_chart(px.scatter_3d(data, x=options[0], y=options[1], z=options[2],color=options[0],height=720,width=720))
+        st.plotly_chart(px.scatter_3d(data, x=options[0], y=options[1], z=options[2],color=options[0],height=720),use_container_width=True  )
         
-        st.plotly_chart(px.scatter_matrix(data, dimensions=data[['population', 'area', 'net_migration', 'gdp_per_capita', 'climate']],width=700, height=720,title="Features relationships",color="gdp_per_capita"))
+        st.plotly_chart(px.scatter_matrix(data, dimensions=data[['population', 'area', 'net_migration', 'gdp_per_capita', 'climate']],width=700, height=720,title="Features relationships",color="gdp_per_capita"),use_container_width=True)
 
         st.info('You can crop and zoom the graph',icon='ℹ️')
-        st.plotly_chart(px.imshow(data.corr(),text_auto=True, aspect="auto"),theme=None)
+        st.plotly_chart(px.imshow(data.corr(),text_auto=True, aspect="auto"),theme=None,use_container_width=True)
 
         with st.expander("See Observations"):
             st.write('''
@@ -347,31 +359,31 @@ elif selected == 'Help':
     with st.container():
 
         st.write('''
-        The **Gross Domestic Product** (GDP) is one of the metrics to ensure self-sustained growth for any country. 
+        The :blue[**Gross Domestic Product**] (GDP) is one of the metrics to ensure self-sustained growth for any country. 
         The total monetary value of goods and services flowing through an economy over time is measured by GDP. 
         ''')
 
         st.write('''
-        ### The goal of our project `Generic GDP Prediction and Analysis` to find the **:red[Patterns]** inside the taken dataset of multiple countries, and to make the **:blue[Prediction]** using Supervized Machine Learning algorithm.        
+        ### The goal of our project _Generic GDP Prediction and Analysis_ to find the **:red[Patterns]** inside the taken dataset of multiple countries, and to make the **:blue[Prediction]** using Supervized Machine Learning algorithm.        
         ''')
         st.markdown('''
-        ## About the Dataset :
+        ## About the Dataset 
         ''')
-        st.table(data.head(3))
+        st.table(data.describe())
         st.write(data.shape)
 
         st.write('''
         ### Methodology
         
-        Step 1. Identifying the research goal that our project aims and context to deliver and measure of success.
+        :blue[Step 1]. Identifying the :red[research goal] that our project aims and context to deliver and measure of success.
         
-        Step 2: Data can be stored in a variety of formats, from plain text files to database tables. The objective now is to acquire the related data. Getting access to data is also a challenging task. Organizations realize the importance and sensitivity of data, and often have norms in place to ensure that everyone has access to just what they want.
+        :blue[Step 2]: Data can be stored in a :red[variety of formats], from plain text files to database tables. The objective now is to acquire the related data. Realize the importance and sensitivity of data, and often have norms in place to ensure that everyone has access to just what they want.
         
-        Step 3: Data Cleansing integrating, and transforming data are the main steps in data preparation.  However, the clean and validated information is gathered from open source. The dataset is clean and hence can be used as it is
+        :blue[Step 3]: Data Cleansing integrating, and transforming data are the main steps in :red[data preparation].  However, the clean and validated information is gathered from open source. The dataset is clean and hence can be used as it is
         
-        Step 4: This stage focuses on data exploration.  Extra Trees Regressor class is used to implement a Meta estimator that fits several decision trees on various sub samples. We are also using Pandas visual analysis tool for detailed data exploration.
+        :blue[Step 4]: This stage focuses on :red[data exploration].  Extra Trees Regressor class is used to implement a Meta estimator that fits several decision trees on various sub samples. We are also using Plotly visual analysis tool for detailed data exploration.
         
-        Step 5: Model is designed with clean data and a clear understanding of the content in order to make better predictions, identify objects, or gain an understanding of the system to model.
+        :blue[Step 5]: Model is designed with clean data and a :red[clear understanding of the content] in order to make better predictions, identify objects, or gain an understanding of the system to model.
 
         ''')
 
@@ -379,10 +391,10 @@ elif selected == 'Help':
 
 
         st.write('''
-        ### Validation :
-            - Almost the datapoints are near to actual values with the data we have
-            - Altough there are slight dissimilarities quite a few, but not much to ruin our analysis
-            - Data points are bit OLD, hence not updated to this date such as population, areas etc
+        ### Validation 
+            - The datapoints are near to actual values with the limited data that we have
+            - Altough there are slight dissimilarities, did not ruin our analysis
+            - Values are bit OLD, not updated to this date. (population, areas, phones etc.)
                  ''')
         
 
