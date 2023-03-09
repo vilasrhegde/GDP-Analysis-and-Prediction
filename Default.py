@@ -29,6 +29,8 @@ st.set_page_config(
 
 
 # ------------------LOGIN---------------------------
+st.title("GDP per capita prediction using Machine Learning")
+
 # @st.cache_data
 def login(username,password):
     database = {'vilas':'vilas','smruthi':'smruthi','rishith':'rishith','rohan':'rohan'}
@@ -37,25 +39,29 @@ def login(username,password):
             st.error('Username/password did not match ')
             st.stop()
         else:
+            st.session_state['username']=username
             return True
-with st.expander("Please fill the below credentials to begin",expanded=True):
-    with st.form("login"):
-        # st.write("Please with the credentials to login")
-        username=st.text_input('Enter the username','',placeholder='username')
-        psw=st.text_input('Enter the password','',placeholder='password',type='password')
-        # Every form must have a submit button.
-        submitted = st.form_submit_button("Login",type='secondary',use_container_width=True)
-    if submitted:
-        login(username,psw)
-        
+if 'username' not in st.session_state:
+    with st.expander("Please fill the below credentials to begin",expanded=True):
+        with st.form("login"):
+            # st.write("Please with the credentials to login")
+            username=st.text_input('Enter the username','',placeholder='username')
+            psw=st.text_input('Enter the password','',placeholder='password',type='password')
+            # Every form must have a submit button.
+            submitted = st.form_submit_button("Login",type='secondary',use_container_width=True)
+        if submitted:
+            login(username,psw)
+            
 
-    if not username or not psw:
-        st.warning('Please do login before perform any operation')
-        st.stop()
+        if not username or not psw:
+            st.warning('Please do login before perform any operation')
+            st.stop()
 
 
 
-
+# st.write(st.session_state.username)
+if 'username' in st.session_state:
+    st.sidebar.title('Hi :blue['+ st.session_state.username.capitalize()+'!]')
 
 with st.sidebar:
     selected = option_menu(
@@ -71,8 +77,7 @@ if selected == 'Prediction':
         latest_iteration.text(f'App is getting ready... {i+1}%')
         bar.progress(i + 1)
         time.sleep(0.01)
-        st.spinner()
-    st.title("GDP per capita prediction using Machine Learning")
+        
     st.warning("Feel free to change the values to predict GDP per capita for any given country!")
 
     # INPUT VALUES FROM THE USER
@@ -199,18 +204,19 @@ if selected == 'Prediction':
 
     # st.write(user_input.shape)
 
-    if (st.button('__Estimate GDP__',use_container_width=True,type='primary')):
+    if (st.button('__**Estimate GDP**__',use_container_width=True,type='primary')):
         prediction=RFmodel.predict(user_input)
 
-        with st.spinner('Wait for it...'):
+        with st.spinner('Prediction in on the way...'):
             time.sleep(2)
 
 
-        st.balloons()
-        st.snow()
-        st.header(f'The estimated GDP per capita is: `{float(prediction)}` ')
-        st.success(f'R2 Score of the _Random Forest Regressor_ is: __{0.84}__')
-        st.info('Generally R2 score __>0.7__ is considered as good', icon="ℹ️")
+        with st.container( ):
+            st.balloons()
+            st.snow()
+            st.header(f'The estimated GDP per capita is: `{float(prediction)}` ')
+            st.success(f'R2 Score of the _Random Forest Regressor_ is: __{0.84}__')
+            st.info('Generally R2 score __>0.7__ is considered as good', icon="ℹ️")
 
 
 elif selected=='Analytics':

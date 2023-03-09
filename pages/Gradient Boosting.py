@@ -1,5 +1,36 @@
 import streamlit as st
 from PIL import Image
+
+
+# @st.cache_data
+def login(username,password):
+    database = {'vilas':'vilas','smruthi':'smruthi','rishith':'rishith','rohan':'rohan'}
+    if username in database.keys():
+        if database[username]!=password:
+            st.error('Username/password did not match ')
+            st.stop()
+        else:
+            st.session_state['username']=username
+            return True
+
+if 'username' not in st.session_state:
+    with st.expander("Please fill the below credentials to begin",expanded=True):
+        with st.form("login"):
+            # st.write("Please with the credentials to login")
+            username=st.text_input('Enter the username','',placeholder='username')
+            psw=st.text_input('Enter the password','',placeholder='password',type='password')
+            # Every form must have a submit button.
+            submitted = st.form_submit_button("Login",type='secondary',use_container_width=True)
+        if submitted:
+            login(username,psw)
+            
+
+        if not username or not psw:
+            st.warning('Please do login before perform any operation')
+            st.stop()
+
+
+
 st.markdown("# Gradient Boosting")
 st.sidebar.markdown('''
 # Performance
@@ -11,7 +42,7 @@ st.sidebar.markdown('''
 
 image = Image.open('GradientBoosting.jpg')
 
-st.image(image, caption='Test data vs Prediction')
+st.image(image, caption='Test data vs Prediction',use_column_width=True)
 with open("GradientBoosting.jpg", "rb") as file:
     btn = st.download_button(
             label="Download image",
