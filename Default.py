@@ -28,6 +28,35 @@ st.set_page_config(
 )
 
 
+# ------------------LOGIN---------------------------
+# @st.cache_data
+def login(username,password):
+    database = {'vilas':'vilas','smruthi':'smruthi','rishith':'rishith','rohan':'rohan'}
+    if username in database.keys():
+        if database[username]!=password:
+            st.error('Username/password did not match ')
+            st.stop()
+        else:
+            return True
+with st.expander("Please fill the below credentials to begin",expanded=True):
+    with st.form("login"):
+        # st.write("Please with the credentials to login")
+        username=st.text_input('Enter the username','',placeholder='username')
+        psw=st.text_input('Enter the password','',placeholder='password',type='password')
+        # Every form must have a submit button.
+        submitted = st.form_submit_button("Login",type='secondary',use_container_width=True)
+    if submitted:
+        login(username,psw)
+        
+
+    if not username or not psw:
+        st.warning('Please do login before perform any operation')
+        st.stop()
+
+
+
+
+
 with st.sidebar:
     selected = option_menu(
         menu_title="Main menu",
