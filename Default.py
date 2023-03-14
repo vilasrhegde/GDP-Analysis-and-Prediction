@@ -39,7 +39,7 @@ RFmodel=get_model('RFmodel.pkl')
 data=get_data('filtered_data.csv')
 
 # ------------------LOGIN---------------------------
-st.title("GDP per capita prediction using Machine Learning")
+st.title("GDP :orange[ANALYSIS] AND :green[PREDICTION]")
 
 # @st.cache_data
 def login(username,password):
@@ -76,10 +76,29 @@ if 'username' in st.session_state:
 with st.sidebar:
     selected = option_menu(
         menu_title="Main menu",
-        options=["Prediction","Analytics","Help"]
+        options=["Prediction","Analytics","Recommendation","Help"],
+        
     )
 st.header(f"{selected}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if selected == 'Prediction':
+
     latest_iteration = st.empty()
     bar = st.progress(0)
 
@@ -230,8 +249,6 @@ if selected == 'Prediction':
 
 
 elif selected=='Analytics':
-
-
     
     tab1, tab2, tab3 = st.tabs(["Regional", "EDA", "Performance"])
 
@@ -366,11 +383,57 @@ elif selected == 'Help':
         st.write('''
         ### The goal of our project _Generic GDP Prediction and Analysis_ to find the **:red[Patterns]** inside the taken dataset of multiple countries, and to make the **:blue[Prediction]** using Supervized Machine Learning algorithm.        
         ''')
-        st.markdown('''
-        ## About the Dataset 
+        with st.expander('See more about dataset'):
+            st.markdown('''
+            `It has 20 columns and 227 rows (countries)`
+
+            `Area`: sq.mi 
+
+            `Population` density: per sq.mi 
+
+            `Coastline`: coast/area ratio
+
+            `Infant mortality`: per 1000 births
+
+            `GDP`: $ per capita
+
+            `Phones`: per 1000    
+
+            `Literacy,Arable,Crops,Other`: percentages (%)
+
+
+            ''')
+
+
+        st.write('''
+        # Takeaways from this project:
+
+            1. Basic authentication system.
+            2. Data prediction based on given values.
+            3. Data visualization by the interactive and 3D graphs.
+            4. Comparative analysis of multiple supervised algorithms.
+            5. Getting recommended values to improve the GDP of selected country.
+            6. Some important realizations of relationships between multiple features.
+        
         ''')
-        st.table(data.describe())
-        st.write(data.shape)
+
+        st.markdown('''
+        ##### :violet[Source: All these data sets are made up of data from the US government and publicly available.]
+        ### What inspired us to do this project?
+
+            Understanding of economy and growth of all countries is an essential for all citizens.
+            As we are progressing towards machine learning and artificial intelligence era, it is helping us to
+            understand complex problems having good amount of data. 
+            
+            The data analysis and engineering is very essential and critical in modern day world. 
+            Data science can provide excellent insight of data using patterns, trends and relationship between 
+            multiple parameters,  which would be impossible for any human being to manually calculate them by having 
+            data in rows and columnar fashion.  
+
+            This process of understanding GDP of any country's and providing options to change parameters to predict its future
+            value became very interesting topic for us. We want to provide some suggestions such as area, sectors to improve any
+            country's GDP per capita.                    
+                    ''')
 
         st.write('''
         ### Methodology
@@ -387,9 +450,6 @@ elif selected == 'Help':
 
         ''')
 
-        st.text('The dataset has 227 entries with 20 features.')
-
-
         st.write('''
         ### Validation 
             - The datapoints are near to actual values with the limited data that we have
@@ -404,6 +464,104 @@ elif selected == 'Help':
 
 
         st.markdown(f":red[©️ Vilas Hegde - {date.today().year}]")
+elif selected=='Recommendation':
+    tab1,tab2 = st.tabs(["Global", "India"])
+
+    with tab1:
+        country = st.selectbox(
+        'Choose a country',
+        data.country.unique()
+        )
+        correlation_matrix = data.corr()['gdp_per_capita']
+
+        corr_values_sorted = correlation_matrix.sort_values(ascending=False)
+
+        # st.write(corr_values_sorted)
+        # st.stop()
+        # st.table(corr_values_sorted)
+        # st.plotly_chart(px.imshow(correlation_matrix,
+        #             labels=dict(x="Columns", y="Columns", color="Correlation"),
+        #             x=correlation_matrix.columns,
+        #             y=correlation_matrix.columns,
+        #             color_continuous_scale='RdBu',
+        #             zmin=-1,
+        #             zmax=1))
+        selected_features = corr_values_sorted[(corr_values_sorted >= 0.5) | (corr_values_sorted <= -0.5)].index.tolist()
+
+        # st.write(selected_features)
 
 
 
+        selected_data_table=data[selected_features[1:]].loc[data.country==country]
+        selected_data_table = selected_data_table.rename(index={0: country})
+        # Rename the index and give it a name
+        selected_data_table= selected_data_table.rename_axis('Country').reset_index()
+        selected_data_table['Country']=country
+        gdp=data.gdp_per_capita[data['country']==country]
+
+        target_value = st.slider(f"Your expectation to reach GDP of {country}", min_value=float(gdp), max_value=99999.0, value=None, step=1.0, format=None, key=None, help='You predict the GDP, and we will recommend the ways to get to there.', on_change=None, args=None, kwargs=None,disabled=False, label_visibility="visible")
+        
+        if (target_value > float(gdp)):
+            percentage_increase = ((target_value - float(gdp)) / float(gdp)) * 100
+            st.write(f'''
+                    `{int(percentage_increase)}% increase`
+                    ''')
+            col1,col2=st.columns(2)
+            with col1:
+                st.metric(label=f"Current GDP (trained data)",value=gdp,delta=float(gdp)-target_value)
+            with col2:
+                st.metric(label=f"Expectated GDP",value=target_value,delta=target_value - float(gdp))
+
+
+            selected_data_table.columns = ['Country','Phones/capita','Service',	'Literacy',	'Agriculture',	'Infant_mortality',	'Birthrate']
+            # Display the DataFrame in a Streamlit table
+            st.subheader('Data that are in our dataset:')
+            st.write(selected_data_table.to_html(index=False), unsafe_allow_html=True)
+
+            
+
+
+            with st.expander('Recommended results',expanded=True):
+                col1,col2= st.columns(2)
+                with col1:
+                    improve={'Phones':selected_data_table['Phones/capita'][0],
+                            'Service':selected_data_table['Service'][0],
+                            'Literacy':selected_data_table['Literacy'][0]}
+                    # st.json(improve)
+                    for i,val in improve.items():
+                        improve[i] = val * (1 + (int(percentage_increase) / 100))
+                        # st.write(i,val)
+                    # st.json(improve,expanded=False)
+                    st.header(':green[Improve] :arrow_up:')
+                    for i,val in improve.items():
+                        st.subheader(f"{i} by :green[{val.round(2)}] units")
+                        # st.write(i,val)
+
+                with col2:
+                    decrease={'Birthrate':selected_data_table['Birthrate'][0],
+                            'Infant Mortality':selected_data_table['Infant_mortality'][0],
+                            'Agriculture':selected_data_table['Agriculture'][0]}
+                    # st.json(decrease)
+                    for i,val in decrease.items():
+                        decrease[i] = val * (1 + (int(-percentage_increase) / 100))
+                        # st.write(i,val)
+                    # st.json(decrease,expanded=False)
+
+                    st.header(':orange[Decrease] :arrow_down:')
+                    for i,val in decrease.items():
+                        st.subheader(f"{i} by :red[{val.round(2)}] units")
+        with st.expander('View impactness of features',expanded=False):
+            col1,col2= st.columns(2)
+            with col1:
+                st.header('High positive impact')
+                st.info('These are directly proportional to GDP', icon="📈")
+
+                for i in selected_features[1:4]:
+                    st.success('__'+i.capitalize()+'__')
+                
+
+            with col2:
+                st.header('High negative impact')
+                st.info('These are inversely proportional to GDP', icon="📉")
+                for i in selected_features[-1:-4:-1]:
+                    st.error('__'+i.capitalize()+'__')
