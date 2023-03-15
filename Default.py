@@ -39,8 +39,8 @@ RFmodel=get_model('RFmodel.pkl')
 data=get_data('filtered_data.csv')
 
 # ------------------LOGIN---------------------------
-st.title("GDP :orange[ANALYSIS] AND :green[PREDICTION]")
-
+st.title("GDP ANALYSIS AND PREDICTION")
+hide = True
 # @st.cache_data
 def login(username,password):
     database = {'vilas':'vilas','smruthi':'smruthi','rishith':'rishith','rohan':'rohan'}
@@ -50,28 +50,39 @@ def login(username,password):
             st.stop()
         else:
             st.session_state['username']=username
+            hide=False
             return True
-if 'username' not in st.session_state:
-    with st.expander("Please fill the below credentials to begin",expanded=True):
-        with st.form("login"):
-            # st.write("Please with the credentials to login")
-            username=st.text_input('Enter the username','',placeholder='username')
-            psw=st.text_input('Enter the password','',placeholder='password',type='password')
-            # Every form must have a submit button.
-            submitted = st.form_submit_button("Login",type='secondary',use_container_width=True)
-        if submitted:
-            login(username,psw)
-            
 
-        if not username or not psw:
-            st.warning('Please do login before perform any operation')
-            st.stop()
+def auth(hide):
+    if 'username' not in st.session_state:
+        with st.expander("Please fill the below credentials to begin",expanded=hide):
+            with st.form("login"):
+                # st.write("Please with the credentials to login")
+                username=st.text_input('Enter the username','',placeholder='username')
+                psw=st.text_input('Enter the password','',placeholder='password',type='password')
+                # Every form must have a submit button.
+                submitted = st.form_submit_button("**LOGIN**",type='primary',use_container_width=True)
+            if submitted:
+                hide=False
+                login(username,psw)
+                return True
+            if not username or not psw:
+                st.warning('Please do login before performing any operation')
+                st.stop()
+
+if 'username' not in st.session_state:
+    auth(hide=True)
+else:
+    auth(hide=False)
+
+
 
 
 
 # st.write(st.session_state.username)
 if 'username' in st.session_state:
     st.sidebar.title('Hi :blue['+ st.session_state.username.capitalize()+'!]')
+    
 
 with st.sidebar:
     selected = option_menu(
@@ -82,23 +93,9 @@ with st.sidebar:
 st.header(f"{selected}")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# -------------------------------Prediction-----------------------------------------
 
 if selected == 'Prediction':
-
     latest_iteration = st.empty()
     bar = st.progress(0)
 
@@ -106,151 +103,202 @@ if selected == 'Prediction':
         latest_iteration.text(f'App is getting ready... {i+1}%')
         bar.progress(i + 1)
         time.sleep(0.01)
+    
+    tab1,tab2 = st.tabs(["Global", "India"])
+
+
+
         
-    st.warning("Feel free to change the values to predict GDP per capita for any given country!")
+    with tab1:
 
-    # INPUT VALUES FROM THE USER
-    
-    cc1,cc2,cc3 = st.columns(3)
-    
-    att_popl = st.number_input('Population (Example: 7000000)', min_value=1e4, max_value=2e9, value=2e7)
+        st.markdown('''
+        :orange[Disclaimer]
+        
+            Feel free to change the values to predict GDP per capita of any Region!''')
 
-    ac1,ac2= st.columns(2)
-    with ac1:
-        att_area = st.slider('Area (sq. Km)', min_value= 2.0, max_value= 17e6, value=6e5, step=1e4)
-    with ac2:
-        att_cost = st.slider('Coastline/Area Ratio', min_value= 0, max_value= 800, value=30, step=10)
-    att_dens = st.slider('Population Density (per sq. mile)', min_value= 0, max_value= 12000, value=400, step=10)
+        # INPUT VALUES FROM THE USER
+        
+        cc1,cc2,cc3 = st.columns(3)
+        
+        att_popl = st.number_input('Population (Example: 7000000)', min_value=1e4, max_value=2e9, value=2e7)
 
-    att_migr = st.slider('Annual Net Migration (migrant(s)/1,000 population)', min_value= -20, max_value= 25, value=0, step=2) 
-    att_mort = st.slider('Infant mortality (per 1000 births)', min_value= 0, max_value=195, value=40, step=10)
-    att_litr = st.slider('Population literacy Percentage', min_value= 0, max_value= 100, value=80, step=5)
-    att_phon = st.slider('Phones per 1000', min_value= 0, max_value= 1000, value=250, step=25)
-    
-    
-    with cc1:
-        att_arab = st.slider('Arable Land (%)', min_value= 0, max_value= 100, value=25, step=2)
-    with cc2:
-        att_crop = st.slider('Crops Land (%)', min_value= 0, max_value= 100, value=5, step=2)
-    with cc3:
-        att_othr = st.slider('Other Land (%)', min_value= 0, max_value= 100, value=70, step=2)
-    st.markdown('`Arable, Crops, and Other land are summed up to 100%`')
+        ac1,ac2= st.columns(2)
+        with ac1:
+            att_area = st.slider('Area (sq. Km)', min_value= 2.0, max_value= 17e6, value=6e5, step=1e4)
+        with ac2:
+            att_cost = st.slider('Coastline/Area Ratio', min_value= 0, max_value= 800, value=30, step=10)
+        att_dens = st.slider('Population Density (per sq. mile)', min_value= 0, max_value= 12000, value=400, step=10)
 
-    #Climate
-    att_clim = st.selectbox('Climate', options=('Mostly hot (like: Egypt and Australia)', 'Mostly hot and Tropical (like: China and Cameroon)', 'Mostly cold and Tropical (like: India)', 'Mostly cold and Tropical (like: India)', ' Mostly cold (like: Argentina and Belgium)'))
-    if att_clim == 'Mostly hot (like: Egypt and Australia)':
-        att_clim=1
-    elif att_clim == 'Mostly hot and Tropical (like: China and Cameroon)':
-        att_clim=1.5
-    elif att_clim == 'Mostly tropical (like: The Bahamas and Thailand)':
-        att_clim=2
-    elif att_clim == 'Mostly cold and Tropical (like: India)':
-        att_clim=2.5
-    elif att_clim == 'Mostly cold (like: Argentina and Belgium)':
-        att_clim=3
+        att_migr = st.slider('Annual Net Migration (migrant(s)/1,000 population)', min_value= -20, max_value= 25, value=0, step=2) 
+        att_mort = st.slider('Infant mortality (per 1000 births)', min_value= 0, max_value=195, value=40, step=10)
+        att_litr = st.slider('Population literacy Percentage', min_value= 0, max_value= 100, value=80, step=5)
+        att_phon = st.slider('Phones per 1000', min_value= 0, max_value= 1000, value=250, step=25)
+        
+        
+        with cc1:
+            att_arab = st.slider('Arable Land (%)', min_value= 0, max_value= 100, value=25, step=2)
+        with cc2:
+            att_crop = st.slider('Crops Land (%)', min_value= 0, max_value= 100, value=5, step=2)
+        with cc3:
+            att_othr = st.slider('Other Land (%)', min_value= 0, max_value= 100, value=70, step=2)
+        st.markdown('`Arable, Crops, and Other land are summed up to 100%`')
 
-    cc1,cc2 = st.columns(2)
-    with cc1:
-        att_brth = st.slider('Annual Birth Rate (births/1,000)', min_value= 7, max_value= 50, value=20, step=2)
-    with cc2:
-        att_deth = st.slider('Annual Death Rate (deaths/1,000)', min_value= 2, max_value= 30, value=10, step=2)
-    
-    cc1,cc2,cc3 = st.columns(3)
-    with cc1:
-        att_agrc = st.slider('Agricultural Economy', min_value= 0.0, max_value= 1.0, value=0.15, step=0.05)
-    with cc2:
-        att_inds = st.slider('Industrial Economy', min_value= 0.0, max_value= 1.0, value=0.25, step=0.05)
-    with cc3:
-        att_serv = st.slider('Services Economy', min_value= 0.0, max_value= 1.0, value=0.60, step=0.05)
-    st.markdown('`Agricultural, Industrial, and Services Economy are summarized to 1`')
-    att_regn = st.selectbox('Region', options=('ASIA (EX. NEAR EAST)','BALTICS','C.W. OF IND. STATES','EASTERN EUROPE','LATIN AMER. & CARIB','NEAR EAST','NORTHERN AFRICA','NORTHERN AMERICA','OCEANIA','SUB-SAHARAN AFRICA','WESTERN EUROPE'))
+        #Climate
+        att_clim = st.selectbox('Climate', options=('Mostly hot (like: Egypt and Australia)', 'Mostly hot and Tropical (like: China and Cameroon)', 'Mostly cold and Tropical (like: India)', 'Mostly cold and Tropical (like: India)', ' Mostly cold (like: Argentina and Belgium)'))
+        if att_clim == 'Mostly hot (like: Egypt and Australia)':
+            att_clim=1
+        elif att_clim == 'Mostly hot and Tropical (like: China and Cameroon)':
+            att_clim=1.5
+        elif att_clim == 'Mostly tropical (like: The Bahamas and Thailand)':
+            att_clim=2
+        elif att_clim == 'Mostly cold and Tropical (like: India)':
+            att_clim=2.5
+        elif att_clim == 'Mostly cold (like: Argentina and Belgium)':
+            att_clim=3
 
-    if att_regn == "ASIA (EX. NEAR EAST)":
-        att_regn = 1
-    elif att_regn == "BALTICS":
-        att_regn = 2
-    elif att_regn == "C.W. OF IND. STATES":
-        att_regn = 3
-    elif att_regn == "EASTERN EUROPE":
-        att_regn = 4
-    elif att_regn == "LATIN AMER. & CARIB":
-        att_regn = 5
-    elif att_regn == "NEAR EAST":
-        att_regn = 6
-    elif att_regn == "NORTHERN AFRICA":
-        att_regn = 7
-    elif att_regn == "NORTHERN AMERICA":
-        att_regn = 8
-    elif att_regn == "OCEANIA":
-        att_regn = 9
-    elif att_regn == "SUB-SAHARAN AFRICA":
-        att_regn = 10
-    elif att_regn == "WESTERN EUROPE":
-        att_regn = 11
+        cc1,cc2 = st.columns(2)
+        with cc1:
+            att_brth = st.slider('Annual Birth Rate (births/1,000)', min_value= 7, max_value= 50, value=20, step=2)
+        with cc2:
+            att_deth = st.slider('Annual Death Rate (deaths/1,000)', min_value= 2, max_value= 30, value=10, step=2)
+        
+        cc1,cc2,cc3 = st.columns(3)
+        with cc1:
+            att_agrc = st.slider('Agricultural Economy', min_value= 0.0, max_value= 1.0, value=0.15, step=0.05)
+        with cc2:
+            att_inds = st.slider('Industrial Economy', min_value= 0.0, max_value= 1.0, value=0.25, step=0.05)
+        with cc3:
+            att_serv = st.slider('Services Economy', min_value= 0.0, max_value= 1.0, value=0.60, step=0.05)
+        st.markdown('`Agricultural, Industrial, and Services Economy are summarized to 1`')
+        att_regn = st.selectbox('Region', options=('ASIA (EX. NEAR EAST)','BALTICS','C.W. OF IND. STATES','EASTERN EUROPE','LATIN AMER. & CARIB','NEAR EAST','NORTHERN AFRICA','NORTHERN AMERICA','OCEANIA','SUB-SAHARAN AFRICA','WESTERN EUROPE'))
 
-
-    if att_regn == 1:
-        att_regn_1 = 1
-        att_regn_2 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 2: 
-        att_regn_2 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 3: 
-        att_regn_3 = 1
-        att_regn_1 = att_regn_2 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 4: 
-        att_regn_4 = 1
-        att_regn_1 = att_regn_3 = att_regn_2 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 5: 
-        att_regn_5 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_2 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 6: 
-        att_regn_6 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_2 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 7: 
-        att_regn_7 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_2 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 8: 
-        att_regn_8 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_2 = att_regn_9 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 9: 
-        att_regn_9 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_2 = att_regn_10 = att_regn_11 = 0
-    elif att_regn == 10: 
-        att_regn_10 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_2 = att_regn_11 = 0
-    else: 
-        att_regn_11 = 1
-        att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_2 = 0
+        if att_regn == "ASIA (EX. NEAR EAST)":
+            att_regn = 1
+        elif att_regn == "BALTICS":
+            att_regn = 2
+        elif att_regn == "C.W. OF IND. STATES":
+            att_regn = 3
+        elif att_regn == "EASTERN EUROPE":
+            att_regn = 4
+        elif att_regn == "LATIN AMER. & CARIB":
+            att_regn = 5
+        elif att_regn == "NEAR EAST":
+            att_regn = 6
+        elif att_regn == "NORTHERN AFRICA":
+            att_regn = 7
+        elif att_regn == "NORTHERN AMERICA":
+            att_regn = 8
+        elif att_regn == "OCEANIA":
+            att_regn = 9
+        elif att_regn == "SUB-SAHARAN AFRICA":
+            att_regn = 10
+        elif att_regn == "WESTERN EUROPE":
+            att_regn = 11
 
 
-    user_input = np.array([att_dens, att_migr, 
-                        att_mort, att_litr, att_phon, 
-                            att_brth, att_agrc, att_serv, 
-                            att_regn_1, att_regn_2, att_regn_3,
-                        att_regn_4, att_regn_5, att_regn_6, att_regn_7, 
-                        att_regn_8, att_regn_9, att_regn_10, att_regn_11]).reshape(1,-1)
+        if att_regn == 1:
+            att_regn_1 = 1
+            att_regn_2 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 2: 
+            att_regn_2 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 3: 
+            att_regn_3 = 1
+            att_regn_1 = att_regn_2 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 4: 
+            att_regn_4 = 1
+            att_regn_1 = att_regn_3 = att_regn_2 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 5: 
+            att_regn_5 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_2 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 6: 
+            att_regn_6 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_2 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 7: 
+            att_regn_7 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_2 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 8: 
+            att_regn_8 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_2 = att_regn_9 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 9: 
+            att_regn_9 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_2 = att_regn_10 = att_regn_11 = 0
+        elif att_regn == 10: 
+            att_regn_10 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_2 = att_regn_11 = 0
+        else: 
+            att_regn_11 = 1
+            att_regn_1 = att_regn_3 = att_regn_4 = att_regn_5 = att_regn_6 = att_regn_7 = att_regn_8 = att_regn_9 = att_regn_10 = att_regn_2 = 0
 
-    # st.write(user_input.shape)
 
-    if (st.button('__**Estimate GDP**__',use_container_width=True,type='primary')):
-        prediction=RFmodel.predict(user_input)
+        user_input = np.array([att_dens, att_migr, 
+                            att_mort, att_litr, att_phon, 
+                                att_brth, att_agrc, att_serv, 
+                                att_regn_1, att_regn_2, att_regn_3,
+                            att_regn_4, att_regn_5, att_regn_6, att_regn_7, 
+                            att_regn_8, att_regn_9, att_regn_10, att_regn_11]).reshape(1,-1)
 
-        with st.spinner('Prediction is on the way...'):
-            time.sleep(2)
+        # st.write(user_input.shape)
+
+        if (st.button('__**Predict GDP**__',use_container_width=True,type='primary')):
+            prediction=RFmodel.predict(user_input)
+
+            with st.spinner('Prediction is on the way...'):
+                time.sleep(2)
 
 
-        with st.container( ):
-            st.balloons()
-            st.snow()
-            st.header(f'The estimated GDP per capita is: `{float(prediction)}` ')
-            st.success(f'R2 Score of the _Random Forest Regressor_ is: __{0.84}__')
-            st.info('Generally R2 score __>0.7__ is considered as good', icon="ℹ️")
+            with st.container( ):
+                st.balloons()
+                st.snow()
+                st.header(f'The estimated GDP per capita is: `{float(prediction)}` ')
+                st.success(f'R2 Score of the _Random Forest Regressor_ is: __{0.84}__')
+                st.info('Generally R2 score __>0.7__ is considered as good', icon="ℹ️")
 
+    with tab2:
+        from sklearn.model_selection import train_test_split
+        from sklearn.metrics import r2_score
+        from sklearn.linear_model import LinearRegression
+        st.write('## What do you want to predict?')
+
+        target  = st.selectbox('Target attribute',
+             options=(
+            
+            'GDP growth (annual %)','Population, total', 'Population growth (annual %)',
+       'Life expectancy at birth, total (years)',
+        'Inflation, GDP deflator (annual %)',
+       'Agriculture, forestry, and fishing, value added (% of GDP)',
+       'Industry (including construction), value added (% of GDP)',
+       'Exports of goods and services (% of GDP)',
+       'Imports of goods and services (% of GDP)',
+       'Foreign direct investment, net inflows (BoP, current US$)'
+        ))
+        # year = st.slider('In how many years from 2020?', step=1,min_value=1,max_value=100,help='We take years from 2020')
+        
+        # Splitting dataset
+        df=pd.read_csv('./India/indData.csv')
+        
+        train =np.asarray(df.drop(['Year','Military expenditure (% of GDP)', 'Merchandise trade (% of GDP)',target],axis=1))
+        test=np.asarray(df[target])
+        X_train, X_test, y_train, y_test = train_test_split(train, test, test_size=0.33, random_state=2)
+        
+        rgr = LinearRegression()
+        rgr.fit(X_train,y_train)
+        pred=rgr.predict(X_test)
+        # Select a single row from the X_test dataset
+        x_new = X_test[0, :]  # assumes X_test is a pandas DataFrame
+
+        # Reshape the data to a 2D array with shape (1, n_features)
+        x_new = x_new.reshape((1, -1))
+        pred=rgr.predict(x_new)
+        st.markdown(f'''
+        # The Predicted :orange[{target}] is :green[{   format(pred[0].round(3),',') } { 'bn' if target=='Population, total' else '$' if target=='Foreign direct investment, net inflows (BoP, current US$)' else '%' } ]
+
+        >   Based on data till 2020
+        ''')
 
 elif selected=='Analytics':
     
-    tab1, tab2, tab3 = st.tabs(["Regional", "EDA", "Performance"])
+    tab1, tabInd, tab2, tab3 = st.tabs(["Regional", "India","EDA", "Performance",])
 
     d=data.groupby('region')['gdp_per_capita'].mean().sort_values()
 
@@ -367,6 +415,92 @@ elif selected=='Analytics':
         - Root Mean Squared Error __(RMSE)__: 5915.82
         - R-Squared Score __(R2_Score)__: 0.73''')
 
+    with tabInd:
+        import plotly.graph_objects as go
+
+        st.subheader(':orange[Indian] Economy :green[Analysis]')
+        # Preprocess
+        df=pd.read_csv('India/indecodata.csv')
+        df = df.rename(columns={'Series Name': 'Year'})
+        df['GDP (current US$)'] = df['GDP (current US$)'].astype(float).round(3)
+        tmp=df.rename(columns={
+        'Population growth (annual %)':'Population',
+       'Life expectancy at birth, total (years)':'Lifetime', 
+       'GDP growth (annual %)':'GDP', 
+       'Inflation, GDP deflator (annual %)':'Inflation',
+       'Agriculture, forestry, and fishing, value added (% of GDP)':'AgriForestFish',
+       'Industry (including construction), value added (% of GDP)':'Industies',
+       'Exports of goods and services (% of GDP)' :'Exports',
+       'Imports of goods and services (% of GDP)' :'Imports',
+       'Military expenditure (% of GDP)':'MilitaryExp',
+        'Merchandise trade (% of GDP)':'MerchandiseTrade',
+       'Foreign direct investment, net inflows (BoP, current US$)':'ForeignInvest'
+
+        })
+        t=tmp.drop(columns=['Year','Population, total', 'Population', 'Lifetime',
+       'GDP (current US$)','ForeignInvest','GDP','Inflation'])
+        new_df = t.melt(var_name='X', value_name='Value', ignore_index=False)
+
+
+        col1,col2 = st.columns(2)
+        with col1:        
+            st.plotly_chart(px.line(df, x="Year", y="GDP growth (annual %)",markers=True,title='Annual GDP growth of India'),use_container_width=True)
+
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df['Year'], y=df['Population growth (annual %)'],
+                                        fill='toself',
+                fillcolor='rgba(231,107,243,0.7)',
+                line_color='rgba(255,0,0,1)',
+                
+                                mode='lines+markers',
+                                name='Population growth'))
+            fig.add_trace(go.Scatter(x=df['Year'], y=df['Life expectancy at birth, total (years)'],
+                                    line_color='rgb(0,176,246)',
+                                        fill='toself',
+                fillcolor='rgba(31,50,243,0.2)',
+                                mode='lines+markers',
+                                name='Life expectancy'))
+            fig.update_layout(title='Life expectancy(Age) and Population growth (%)',
+                            xaxis_title='Year',
+                            yaxis_title='Life expectancy and Population growth')
+            st.plotly_chart(fig,use_container_width=True)
+
+
+            fig = px.bar(new_df['X'],x='X',y=new_df['Value'],  text_auto='.2s',
+                        color=new_df['X'],
+                        height=500,
+                        width=900,
+                        title="% Contribution for GDP by different sectors")
+            fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+            st.plotly_chart(fig,use_container_width=True)
+
+
+        with col2:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df['Year'], y=df['Imports of goods and services (% of GDP)'], name='Imports',
+                         line=dict(color='firebrick', width=4,
+                              dash='dashdot') # dash options include 'dash', 'dot', and 'dashdot'
+            ))
+            fig.add_trace(go.Scatter(x=df['Year'], y=df['Exports of goods and services (% of GDP)'], name='Exports',
+                                    line=dict(color='royalblue', width=4, dash='dot')))
+
+            fig.update_layout(title='Import and Export of goods and services (% of GDP)',
+                            xaxis_title='Year',
+                            yaxis_title='Exports/Import of goods and services (% of GDP)')
+            
+            st.plotly_chart(fig,use_container_width=True)
+
+            fig = px.line(df,x='Year',y='Population, total',
+            markers=True,
+            title="Total Population of India annually")
+            fig.update_traces(textfont_size=12,cliponaxis=False)
+            st.plotly_chart(fig,use_container_width=True)
+
+            fig = px.bar(tmp,x='Year',y='ForeignInvest',  text_auto='.1s',
+
+            title="Year by year Foreign investments of India")
+            fig.update_traces(textfont_size=12, textangle=0, textposition="outside", cliponaxis=False)
+            st.plotly_chart(fig,use_container_width=True)
 
 
             
@@ -508,7 +642,7 @@ elif selected=='Recommendation':
                     ''')
             col1,col2=st.columns(2)
             with col1:
-                st.metric(label=f"Current GDP (trained data)",value=gdp,delta=float(gdp)-target_value)
+                st.metric(label=f"GDP in 2006",value=gdp,delta=float(gdp)-target_value)
             with col2:
                 st.metric(label=f"Expectated GDP",value=target_value,delta=target_value - float(gdp))
 
