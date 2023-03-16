@@ -420,7 +420,7 @@ elif selected=='Analytics':
 
         st.subheader(':orange[Indian] Economy :green[Analysis]')
         # Preprocess
-        df=pd.read_csv('India\IndData.csv')
+        df=pd.read_csv('India/IndData.csv')
         df = df.rename(columns={'Series Name': 'Year'})
         df['GDP (current US$)'] = df['GDP (current US$)'].astype(float).round(3)
         tmp=df.rename(columns={
