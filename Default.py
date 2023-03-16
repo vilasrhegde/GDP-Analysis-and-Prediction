@@ -275,7 +275,7 @@ if selected == 'Prediction':
         # year = st.slider('In how many years from 2020?', step=1,min_value=1,max_value=100,help='We take years from 2020')
         
         # Splitting dataset
-        df=pd.read_csv('./India/indData.csv')
+        df=pd.read_csv('./India/IndData.csv')
         
         train =np.asarray(df.drop(['Year','Military expenditure (% of GDP)', 'Merchandise trade (% of GDP)',target],axis=1))
         test=np.asarray(df[target])
