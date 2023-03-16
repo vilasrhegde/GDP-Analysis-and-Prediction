@@ -294,7 +294,7 @@ if selected == 'Prediction':
         st.markdown(f'''
         # The Predicted :orange[{target}] is :green[{   format(pred[0].round(3),',') } { 'bn' if target=='Population, total' else '$' if target=='Foreign direct investment, net inflows (BoP, current US$)' else '%' } ]
 
-        >   Based on data till 2020
+        >   Based on data till 2020 using Linear Regression
         ''')
 
         from sklearn.tree import DecisionTreeRegressor
@@ -350,7 +350,7 @@ if selected == 'Prediction':
                             name='Actual',
                             line=dict(width=4)))
 
-        fig.update_layout(title='GDP growth prediction using different algorithms',
+        fig.update_layout(title=f'{target} prediction using different algorithms',
                         xaxis_title='Values',
                         yaxis_title='Predicted')
         st.plotly_chart(fig,use_container_width=True)
