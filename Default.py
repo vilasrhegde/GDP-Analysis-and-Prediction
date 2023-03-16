@@ -305,22 +305,32 @@ elif selected=='Analytics':
 
 
     with tab1:
-            
-        st.plotly_chart(px.bar(d, x='gdp_per_capita',title="Rankings of Regions based on GDP per capita",orientation='h'),theme='streamlit',use_container_width=True)
 
-        st.plotly_chart(px.scatter(data, x="literacy", y="gdp_per_capita",title='GDP per capita v/s Literacy', size='literacy', color="region",
-            hover_name="country", log_x=True),use_container_width=False)
-        st.info('__GDP__ of a country is highly dependant upon the __literacy__ and vice versa.')
+        col1,col2= st.columns(2)
 
-        st.plotly_chart(px.scatter(data, x="agriculture", y="gdp_per_capita", color="region",
+        with col1:
+            st.plotly_chart(px.bar(d, x='gdp_per_capita',title="Rankings of Regions based on GDP per capita",orientation='h'),theme='streamlit',use_container_width=True)
+
+
+        with col2:
+            st.plotly_chart(px.scatter(data, x="literacy", y="gdp_per_capita",title='GDP per capita v/s Literacy', size='literacy', color="region",
+            hover_name="country", log_x=True),use_container_width=True)
+            st.info('__GDP__ of a country is highly dependant upon the __literacy__ and vice versa.')
+
+        
+        with col1:
+            st.plotly_chart(px.scatter(data, x="agriculture", y="gdp_per_capita", color="region",
                     title='GDP v/s Agriculture (Crops)'),use_container_width=True)
-        st.info('Poor countries are more dependant upon harvesting crops than developed countris.')
+            st.info('Poor countries are more dependant upon harvesting crops than developed countris.')
 
-        st.plotly_chart(px.box(data,x="area",y="gdp_per_capita",points="all"),theme=None,use_container_width=True)
-        st.info('As the area increased, the GDP did not kept up.')
+        with col2:
+            st.plotly_chart(px.box(data,x="area",y="gdp_per_capita",points="all"),theme=None,use_container_width=True)
+            st.info('As the area increased, the GDP did not kept up.')
 
-        st.plotly_chart(px.bar(data, x='region', y='country'),theme=None,use_container_width=True)
-        st.plotly_chart(px.bar(data, x='region', y='gdp_per_capita',color='country',title="GDP of multiple Regions",width=500),use_container_width=True)
+        with col1:
+            st.plotly_chart(px.bar(data, x='region', y='country'),theme=None,use_container_width=True)
+        with col2:
+            st.plotly_chart(px.bar(data, x='region', y='gdp_per_capita',color='country',title="GDP of multiple Regions",),use_container_width=True)
 
     with tab2:
         st.sidebar.markdown('### For Exploratory Data Analysis (EDA)')
