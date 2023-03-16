@@ -255,9 +255,10 @@ if selected == 'Prediction':
                 st.info('Generally R2 score __>0.7__ is considered as good', icon="ℹ️")
 
     with tab2:
-        from sklearn.model_selection import train_test_split
+        from sklearn.model_selection import train_test_split, GridSearchCV
         from sklearn.metrics import r2_score
         from sklearn.linear_model import LinearRegression
+        from sklearn.ensemble import RandomForestRegressor
         st.write('## What do you want to predict?')
 
         target  = st.selectbox('Target attribute',
@@ -296,6 +297,65 @@ if selected == 'Prediction':
         >   Based on data till 2020
         ''')
 
+        from sklearn.tree import DecisionTreeRegressor
+        regressor = DecisionTreeRegressor(random_state=0)
+        regressor.fit(X_train, y_train)
+        l=regressor.predict(X_test, check_input=True)
+
+        rf = RandomForestRegressor(random_state=42)
+        # param_grid = {
+        #     "n_estimators": [10, 50, 100],
+        #     "max_depth": [None, 5, 10],
+        #     "min_samples_split": [2, 5, 10],
+        # }
+        # grid_search = GridSearchCV(rf, param_grid, cv=5, scoring="r2")
+        rf.fit(X_train, y_train)
+        # print("Best hyperparameters:", grid_search.best_params_)
+        RF_pred = rf.predict(X_test)
+    
+        from sklearn.svm import SVR
+        svr = SVR(kernel="rbf")
+        svr.fit(X_train, y_train)
+        svr_pred = svr.predict(X_test)
+
+        import plotly.graph_objects as go
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=pred,
+        
+            line_color='rgba(255,0,0,1)',
+            
+                            mode='lines+markers',
+                            name='Linear Regression'))
+        fig.add_trace(go.Scatter(y=l, 
+                                line_color='rgb(0,176,246)',
+                                    
+                            mode='lines+markers',
+                            name='Decision Tree'))
+        fig.add_trace(go.Scatter(y=svr_pred, 
+                                line_color='rgb(170,100,20)',
+                                    
+                            mode='lines+markers',
+                            name='SVR'))
+        fig.add_trace(go.Scatter(y=RF_pred, 
+
+                                line_color='rgb(180,116,250)',
+                                    
+                            mode='lines+markers',
+                            name='Random Forest'))
+        fig.add_trace(go.Scatter(y=y_test, 
+                                line_color='rgb(0,255,0)',
+                                    
+                            mode='lines',
+                            name='Actual',
+                            line=dict(width=4)))
+
+        fig.update_layout(title='GDP growth prediction using different algorithms',
+                        xaxis_title='Values',
+                        yaxis_title='Predicted')
+        st.plotly_chart(fig,use_container_width=True)
+                        
+
 elif selected=='Analytics':
     
     tab1, tabInd, tab2, tab3 = st.tabs(["Regional", "India","EDA", "Performance",])
@@ -333,7 +393,7 @@ elif selected=='Analytics':
             st.plotly_chart(px.bar(data, x='region', y='gdp_per_capita',color='country',title="GDP of multiple Regions",),use_container_width=True)
 
     with tab2:
-        st.sidebar.markdown('### For Exploratory Data Analysis (EDA)')
+        st.sidebar.markdown('### :orange[For Exploratory Data Analysis]')
         options = st.sidebar.multiselect(
         'Plot your graph by choosing the paremeters',
         ['region', 'gdp_per_capita', 'net_migration', 'phones'],
@@ -343,7 +403,7 @@ elif selected=='Analytics':
             st.stop()
         else:
             st.markdown(f'# The 3D Graph')
-            st.write('You selected:', options)
+            # st.write('You selected:', options)
 
         st.plotly_chart(px.scatter_3d(data, x=options[0], y=options[1], z=options[2],color=options[0],height=720),use_container_width=True  )
         
@@ -387,6 +447,10 @@ elif selected=='Analytics':
 
             st.write('''
                 1. _`Random Forest` with Feature selection and NO scaling_
+
+                > It did well for Global economy prediction.
+                
+
             - Mean Absolute Error __(MAE)__: 2451.88
             - Root Mean Squared Error __(RMSE)__: 3580.53
             - R-Squared Score __(R2_Score)__: 0.84''')
@@ -395,6 +459,8 @@ elif selected=='Analytics':
             st.write('''
 
         3. _`Linear Regression` with selected features and scaling_
+            
+            > It did well for Indian economy prediction.
         - Mean Absolute Error __(MAE)__: 2879.521
         - Root Mean Squared Error __(RMSE)__:3756.43
         - R-Squared Score __(R2_Score)__: 0.83''')
@@ -525,7 +591,7 @@ elif selected == 'Help':
         ''')
 
         st.write('''
-        ### The goal of our project _Generic GDP Prediction and Analysis_ to find the **:red[Patterns]** inside the taken dataset of multiple countries, and to make the **:blue[Prediction]** using Supervized Machine Learning algorithm.        
+        ### The goal of our project _Generic GDP Prediction and Analysis_ to find the **:red[Patterns]** inside the taken dataset of multiple countries, and to make the **:blue[Prediction]** using Supervized Machine Learning algorithm. This project ivolves applications of :orange[Data Analysis], :violet[Prediction] and :green[Recommendation] using Machine Learning.    
         ''')
         with st.expander('See more about dataset'):
             st.markdown('''
@@ -558,11 +624,13 @@ elif selected == 'Help':
             4. Comparative analysis of multiple supervised algorithms.
             5. Getting recommended values to improve the GDP of selected country.
             6. Some important realizations of relationships between multiple features.
+            7. Indian economy analysis and prediction of any feature. 
+
         
         ''')
 
         st.markdown('''
-        ##### :violet[Source: All these data sets are made up of data from the US government and publicly available.]
+        > :blue[Source:] All these data sets taken up from the US government and World Bank open data.
         ### What inspired us to do this project?
 
             Understanding of economy and growth of all countries is an essential for all citizens.
@@ -610,7 +678,8 @@ elif selected == 'Help':
         st.markdown(f":red[©️ Vilas Hegde - {date.today().year}]")
 elif selected=='Recommendation':
     tab1,tab2 = st.tabs(["Global", "India"])
-
+    df = pd.read_csv('./India/IndData.csv')
+    df=df.drop(columns=['Unnamed: 0'])
     with tab1:
         country = st.selectbox(
         'Choose a country',
@@ -709,3 +778,97 @@ elif selected=='Recommendation':
                 st.info('These are inversely proportional to GDP', icon="📉")
                 for i in selected_features[-1:-4:-1]:
                     st.error('__'+i.capitalize()+'__')
+
+    with tab2:
+        # df=df.drop(columns=['Unnamed: 0'])
+        # st.table(df.head())
+        correlation_matrix = df.corr()['GDP (current US$)']
+        # correlation_matrix=correlation_matrix.drop(columns=['Unnamed: 0'])
+        corr_values_sorted = correlation_matrix.sort_values(ascending=False)
+
+        selected_features = corr_values_sorted[(corr_values_sorted >= 0.5) | (corr_values_sorted <= -0.5)].index.tolist()
+        selected_features.remove('Year')
+        selected_data_table=df[selected_features[1:]].loc[df['Year']==2020]
+        # selected_data_table=selected_data_table.drop(columns=['Unnamed: 0'])
+        gdp=df['GDP (current US$)'][df['Year']==2020]
+        gdp=float(gdp)
+        if gdp >= 1000000000:
+            gdp= str(gdp/1000000000)[:4] + ' B.'
+        elif gdp >= 1000000:
+            gdp= str(gdp/1000000)[:4] + ' M.'
+        st.sidebar.metric(value=gdp,label="India's GDP in 2020")
+
+        target_value= st.slider('How much GDP you want India to reach?',min_value=float(gdp[:3]),max_value=10.0,step=.5)
+        if (target_value > float(gdp[:3])):
+                    percentage_increase = ((target_value - float(gdp[:3])) / float(gdp[:3])) * 100
+                    st.write(f'''
+                            `{int(percentage_increase)}% increase`
+                            ''')
+                    col1,col2=st.columns(2)
+                    with col1:
+                        st.metric(label=f"GDP in 2020",value=gdp,delta=float(gdp[:3])-target_value)
+                    with col2:
+                        st.metric(label=f"Expectated GDP",value=str(target_value)+' B.',delta=target_value - float(gdp[:3]))
+
+                    st.subheader('Data that are in our dataset:')
+                    st.write(selected_data_table.to_html(index=False), unsafe_allow_html=True)
+                    
+                    
+                    with st.expander('Recommended results',expanded=True):
+                        col1,col2= st.columns(2)
+                        # st.table(selected_data_table)
+                        with col1:  
+                            improve={'Life expectancy at birth, total (years)':float(selected_data_table['Life expectancy at birth, total (years)']),
+                                    'Population, total':float(selected_data_table['Population, total']),
+                                    'Merchandise trade (% of GDP)':float(selected_data_table['Merchandise trade (% of GDP)']),
+                                    'Foreign direct investment, net inflows (BoP, current US$)':float(selected_data_table['Foreign direct investment, net inflows (BoP, current US$)']),
+                                    'Imports of goods and services (% of GDP)':float(selected_data_table['Imports of goods and services (% of GDP)']),
+                                    'Exports of goods and services (% of GDP)':float(selected_data_table['Exports of goods and services (% of GDP)']),
+                                    'Agriculture, forestry, and fishing, value added (% of GDP)':float(selected_data_table['Agriculture, forestry, and fishing, value added (% of GDP)'])
+                            }
+                        #     # st.json(improve)
+                            for i,val in improve.items():
+                                if val >= 1000000000:
+                                    val = val * (1 + (int(percentage_increase) / 100))
+                                    val= str(val/1000000000)[:4] + ' B.'
+                                    improve[i]=val
+                                else:
+                                    improve[i] = val * (1 + (int(percentage_increase) / 100))
+                                # st.write(i,val)
+                            # st.json(improve,expanded=False)
+                            st.header(':green[Improve] :arrow_up:')
+                            for i,val in improve.items():
+                                st.subheader(f"{i} by :green[{val}] units")
+                                # st.write(i,val)
+
+                        with col2:
+                            decrease={'Population growth (annual %)':float(selected_data_table['Population growth (annual %)']),
+                                    'Agriculture, forestry, and fishing, value added (% of GDP)':float(selected_data_table['Agriculture, forestry, and fishing, value added (% of GDP)']),
+                                    
+                                    }
+                            # st.json(decrease)
+                            for i,val in decrease.items():
+                                val = val * (1 + (int(-percentage_increase) / 100))
+                                decrease[i] = abs(val)
+                                # st.write(i,val)
+                            # st.json(decrease,expanded=False)
+
+                            st.header(':orange[Decrease] :arrow_down:')
+                            for i,val in decrease.items():
+                                st.subheader(f"{i} by :red[{str(val)[:4]}] %")
+        with st.expander('View impactness of features',expanded=False):
+                            col1,col2= st.columns(2)
+                            # st.table(corr_values_sorted)
+                            with col1:
+                                st.header('High positive impact')
+                                st.info('These are directly proportional to GDP', icon="📈")
+
+                                for i in selected_features[1:8]:
+                                    st.success('__'+i.capitalize()+'__')
+                                
+
+                            with col2:
+                                st.header('High negative impact')
+                                st.info('These are inversely proportional to GDP', icon="📉")
+                                for i in selected_features[-1:-3:-1]:
+                                    st.error('__'+i.capitalize()+'__')
