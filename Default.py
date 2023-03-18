@@ -513,7 +513,7 @@ elif selected=='Analytics':
        'Foreign direct investment, net inflows (BoP, current US$)':'ForeignInvest'
 
         })
-        t=tmp.drop(columns=['Year','Population, total', 'Population', 'Lifetime',
+        t=tmp.drop(columns=['Year','Unnamed: 0','MilitaryExp','Population, total', 'Population', 'Lifetime',
        'GDP (current US$)','ForeignInvest','GDP','Inflation'])
         new_df = t.melt(var_name='X', value_name='Value', ignore_index=False)
 
@@ -579,6 +579,17 @@ elif selected=='Analytics':
             st.plotly_chart(fig,use_container_width=True)
 
 
+
+        with st.expander("See Observations",expanded=True):
+            st.write('''
+            ### From the above graphs:
+        -   The GDP growth of India has been declining since 2016, and hit lowest in 2020.
+        -   Our import business is always higher than export, which can't be good always for our economical independance.
+        -   As the decades unfolded, population of India decreased, although life expectancy kept increasing.
+        -   Industries and Merchandise Trading are the two leaders to contributing GDP growth of India.
+        -   Foreign investments are exponentially increasing as the years progressed, which is a very healthy sign for our economy.
+            ''')
+
             
 
 
@@ -593,7 +604,7 @@ elif selected == 'Help':
         st.write('''
         ### The goal of our project _Generic GDP Prediction and Analysis_ to find the **:red[Patterns]** inside the taken dataset of multiple countries, and to make the **:blue[Prediction]** using Supervized Machine Learning algorithm. This project ivolves applications of :orange[Data Analysis], :violet[Prediction] and :green[Recommendation] using Machine Learning.    
         ''')
-        with st.expander('See more about dataset'):
+        with st.expander('See more about Global dataset'):
             st.markdown('''
             `It has 20 columns and 227 rows (countries)`
 
