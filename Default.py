@@ -40,49 +40,154 @@ data=get_data('filtered_data.csv')
 
 # ------------------LOGIN---------------------------
 st.title("GDP ANALYSIS AND PREDICTION")
-hide = True
-# @st.cache_data
-def login(username,password):
-    database = {'vilas':'vilas','smruthi':'smruthi','rishith':'rishith','rohan':'rohan'}
-    if username in database.keys():
-        if database[username]!=password:
-            st.error('Username/password did not match ')
-            st.stop()
+
+
+
+import streamlit as st
+import bcrypt
+import sqlite3
+
+# st.session_state['username']=''
+def create_user_table():
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                 username TEXT NOT NULL, 
+                 password TEXT NOT NULL)''')
+    conn.commit()
+    conn.close()
+
+def signup():
+    if 'username' in st.session_state and   len(st.session_state['username'])>0:
+        st.success(f"Hey {st.session_state['username'].capitalize()}, you are logged in already")
+        isLog=True
+        return
+
+    st.write("Sign Up")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type='password')
+    confirm_password = st.text_input("Confirm Password", type='password')
+
+    if st.button("Signup",type='primary',use_container_width=True):
+        if password == confirm_password:
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+            conn.commit()
+            conn.close()
+            st.success("You have successfully created an account!")
+            st.info("Please login to proceed.")
         else:
-            st.session_state['username']=username
-            hide=False
-            return True
+            st.warning("Passwords do not match.")
 
-def auth(hide):
-    if 'username' not in st.session_state:
-        with st.expander("Please fill the below credentials to begin",expanded=hide):
-            with st.form("login"):
-                # st.write("Please with the credentials to login")
-                username=st.text_input('Enter the username','',placeholder='username')
-                psw=st.text_input('Enter the password','',placeholder='password',type='password')
-                # Every form must have a submit button.
-                submitted = st.form_submit_button("**LOGIN**",type='primary',use_container_width=True)
-            if submitted:
-                hide=False
-                login(username,psw)
-                return True
-            if not username or not psw:
-                st.warning('Please do login before performing any operation')
+def login():
+    # session = get(username='')
+    if 'username' in st.session_state and len(st.session_state['username'])>0:
+        st.write("### Hey",':blue[', st.session_state.username.capitalize()+' 👋',']')
+        isLog=True
+        return
+
+    st.write("Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type='password')
+
+    if st.button("Login",type='primary',use_container_width=True):
+        conn = sqlite3.connect('users.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM users WHERE username=?", (username,))
+        result = c.fetchone()
+        conn.close()
+        if result:
+            hashed_password = result[2]
+            if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+                st.session_state['username'] = username
+                st.success("You have successfully logged in!")
+                isLog=True
+            else:
+                st.warning("Incorrect Password")
                 st.stop()
+        else:
+            st.markdown("## :red[Username not found, Please Sign Up!]")
+            st.stop()
 
-if 'username' not in st.session_state:
-    auth(hide=True)
-else:
-    auth(hide=False)
+def logout():
+    
+    if len(st.session_state['username'])<=0:
+        st.warning("You have not logged in yet!")
+        return
+
+    st.session_state['username'] = ''
+    st.success("You have successfully logged out!")
+
+
+
+
+def main():
+    isLog = False
+    create_user_table()
+
+
+    menu = ["Login", "Signup", "Logout"]
+    choice = st.sidebar.selectbox("Select an option", menu)
+
+    if choice == "Signup":
+        signup()
+    elif choice == "Login":
+        login()
+    elif choice == "Logout":
+        logout()
+
+if __name__ == '__main__':
+    main()
+
+
+# hide = True
+# # @st.cache_data
+# def login(username,password):
+#     database = {'vilas':'vilas','smruthi':'smruthi','rishith':'rishith','rohan':'rohan'}
+#     if username in database.keys():
+#         if database[username]!=password:
+#             st.error('Username/password did not match ')
+#             st.stop()
+#         else:
+#             st.session_state['username']=username
+#             hide=False
+#             return True
+
+# def auth(hide):
+#     if 'username' not in st.session_state:
+#         with st.expander("Please fill the below credentials to begin",expanded=hide):
+#             with st.form("login"):
+#                 # st.write("Please with the credentials to login")
+#                 username=st.text_input('Enter the username','',placeholder='username')
+#                 psw=st.text_input('Enter the password','',placeholder='password',type='password')
+#                 # Every form must have a submit button.
+#                 submitted = st.form_submit_button("**LOGIN**",type='primary',use_container_width=True)
+#             if submitted:
+#                 hide=False
+#                 login(username,psw)
+#                 return True
+#             if not username or not psw:
+#                 st.warning('Please do login before performing any operation')
+#                 st.stop()
+
+# if 'username' not in st.session_state:
+#     auth(hide=True)
+# else:
+#     auth(hide=False)
 
 
 
 
 
 # st.write(st.session_state.username)
-if 'username' in st.session_state:
+if 'username' in st.session_state and  len(st.session_state['username'])>0:
     st.sidebar.title('Hi :blue['+ st.session_state.username.capitalize()+'!]')
-    
+
+else:
+    st.stop()    
 
 with st.sidebar:
     selected = option_menu(
